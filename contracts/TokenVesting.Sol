@@ -1,0 +1,55 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.21;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract TokenVesting is Ownable {
+    struct LockInfo {
+        uint256 amount;
+        uint256 releaseTime;
+    }
+
+    ERC20 private immutable _token;
+
+    mapping(address => LockInfo) private _locks;
+
+    uint256 public totalLockedTokens;
+
+    constructor(address tokenAddress) Ownable(msg.sender) {
+        _token = ERC20(tokenAddress);
+    }
+
+    function lockTokens(
+        address beneficiary,
+        uint256 amount,
+        uint256 releaseTime
+    ) external onlyOwner {
+        require(beneficiary != address(0), "Invalid beneficiary");
+        require(amount > 0, "Zero amount");
+        require(releaseTime > block.timestamp, "Release time is in the past");
+        require(_locks[beneficiary].amount == 0, "Already locked for this beneficiary");
+
+        bool success = _token.transferFrom(msg.sender, address(this), amount);
+        require(success, "Token transfer failed");
+
+        _locks[beneficiary] = LockInfo({amount: amount, releaseTime: releaseTime});
+        totalLockedTokens += amount; // Total kilitli token miktarını artırıyoruz
+    }
+
+    function releaseTokens(address beneficiary) external {
+        LockInfo memory lockInfo = _locks[beneficiary];
+        require(lockInfo.amount > 0, "No locked tokens");
+        require(block.timestamp >= lockInfo.releaseTime, "Not yet unlocked");
+
+        delete _locks[beneficiary];
+        totalLockedTokens -= lockInfo.amount; // Total kilitli token miktarını azaltıyoruz
+
+        bool success = _token.transfer(beneficiary, lockInfo.amount);
+        require(success, "Token transfer failed");
+    }
+
+    function getTotalLockedTokens() external view returns (uint256) {
+        return totalLockedTokens;
+    }
+}
