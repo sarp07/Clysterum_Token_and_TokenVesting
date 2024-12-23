@@ -20,11 +20,11 @@ describe("MyToken", function () {
   });
 
   /**
-   * @description Verifies that the total supply of the token is 300 million.
+   * @description Verifies that the total supply of the token is 3 billion.
    */
-  it("Should have total supply of 300 million", async function () {
+  it("Should have total supply of 3 billion", async function () {
     const totalSupply = await myToken.totalSupply();
-    expect(totalSupply).to.equal(ethers.parseUnits("300000000", 18));
+    expect(totalSupply).to.equal(ethers.parseUnits("3000000000", 18));
   });
 
   /**
@@ -33,7 +33,7 @@ describe("MyToken", function () {
   it("Should assign the total supply to the deployer", async function () {
     const [deployer] = await ethers.getSigners();
     const deployerBalance = await myToken.balanceOf(deployer.address);
-    expect(deployerBalance).to.equal(ethers.parseUnits("300000000", 18));
+    expect(deployerBalance).to.equal(ethers.parseUnits("3000000000", 18));
   });
 });
 
